@@ -1,0 +1,10 @@
+{
+  "name": "Neon Ludo",
+  "short_name": "Neon Ludo",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#151515",
+  "theme_color": "#151515",
+  "description": "A polished offline Ludo game.",
+  "orientation": "portrait"
+}
