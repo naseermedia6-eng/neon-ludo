@@ -5,10 +5,23 @@ plugins {
 }
 android {
     namespace "com.example.neonludo"
-    compileSdk flutter.compileSdkVersion
+    compileSdk 34
     ndkVersion flutter.ndkVersion
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = JavaVersion.VERSION_17 }
-    defaultConfig { applicationId "com.example.neonludo"; minSdk 23; targetSdk flutter.targetSdkVersion; versionCode 1; versionName "1.0.0" }
+    defaultConfig {
+        applicationId "com.example.neonludo"
+        minSdk 21
+        targetSdk 34
+        multiDexEnabled true
+        versionCode 1
+        versionName "1.0.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            shrinkResources false
+        }
+    }
 }
 flutter { source "../.." }
