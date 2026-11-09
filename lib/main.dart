@@ -161,7 +161,70 @@ class ProfilePage extends StatelessWidget {
   void _exchange(BuildContext context,LudoController c,int diamonds,int coins){if(c.diamonds<diamonds)return;c.diamonds-=diamonds;c.grantCoins(coins);c.prefs.setInt('diamonds',c.diamonds);ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('$coins coins added to your wallet')));}
 }
 class _EditProfile extends StatefulWidget{final LudoController c;const _EditProfile(this.c);@override State<_EditProfile> createState()=>_EditProfileState();}
-class _EditProfileState extends State<_EditProfile>{late final TextEditingController name;late String emoji;@override void initState(){super.initState();name=TextEditingController(text:widget.c.displayName);emoji=widget.c.avatar;}@override void dispose(){name.dispose();super.dispose();}@override Widget build(BuildContext context)=>AlertDialog(backgroundColor:panel,title:const Text('Edit profile'),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:name,maxLength:24,decoration:const InputDecoration(labelText:'Player name',counterText:'')),Wrap(spacing:8,children:['🙂','🐯','🦊','🐼','🐸','🦄','🐨','🐙'].map((x)=>ChoiceChip(label:Text(x,style:const TextStyle(fontSize:20)),selected:emoji==x,onSelected:(_)=>setState(()=>emoji=x)).toList()))]),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('Cancel')),ElevatedButton(onPressed:()async{await widget.c.updateProfile(name:name.text,newAvatar:emoji);if(mounted)Navigator.pop(context);},child:const Text('Save'))]);}
+class _EditProfileState extends State<_EditProfile> {
+  late final TextEditingController name;
+  late String emoji;
+
+  @override
+  void initState() {
+    super.initState();
+    name = TextEditingController(text: widget.c.displayName);
+    emoji = widget.c.avatar;
+  }
+
+  @override
+  void dispose() {
+    name.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+        backgroundColor: panel,
+        title: const Text('Edit profile'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: name,
+              maxLength: 24,
+              decoration: const InputDecoration(
+                labelText: 'Player name',
+                counterText: '',
+              ),
+            ),
+            Wrap(
+              spacing: 8,
+              children: [
+                '🙂', '🐯', '🦊', '🐼', '🐸', '🦄', '🐨', '🐙',
+              ].map(
+                (emojiOption) => ChoiceChip(
+                  label: Text(
+                    emojiOption,
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                  selected: emoji == emojiOption,
+                  onSelected: (_) => setState(() => emoji = emojiOption),
+                ),
+              ).toList(),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await widget.c.updateProfile(name: name.text, newAvatar: emoji);
+              if (mounted) Navigator.pop(context);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      );
+}
 
 class MatchScreen extends StatefulWidget{const MatchScreen({super.key});@override State<MatchScreen> createState()=>_MatchScreenState();}
 class _MatchScreenState extends State<MatchScreen> with TickerProviderStateMixin{bool shown=false;int lastGiftSerial=0;final Map<String,GlobalKey> avatarKeys={};final Map<AnimationController,OverlayEntry> giftFlights={};@override void initState(){super.initState();WidgetsBinding.instance.addPostFrameCallback((_)=>context.read<LudoController>().joinMatchVoice());}GlobalKey _keyFor(LudoPlayer player)=>avatarKeys.putIfAbsent(player.userId,()=>GlobalKey());@override void dispose(){for(final flight in giftFlights.entries){if(flight.value.mounted)flight.value.remove();flight.key.dispose();}giftFlights.clear();super.dispose();}

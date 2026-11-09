@@ -51,10 +51,115 @@ class DedicatedVoiceRoomScreen extends StatefulWidget{const DedicatedVoiceRoomSc
 class _DedicatedVoiceRoomScreenState extends State<DedicatedVoiceRoomScreen> with TickerProviderStateMixin{
   final chatController=TextEditingController();final chatScroll=ScrollController();final List<AnimationController> effects=[];int seenGift=0;late final AnimationController entrance=AnimationController(vsync:this,duration:const Duration(milliseconds:500))..forward();
   @override void dispose(){chatController.dispose();chatScroll.dispose();entrance.dispose();for(final effect in effects){effect.dispose();}super.dispose();}
-  @override Widget build(BuildContext context)=>Consumer<LudoController>(builder:(context,c,_) {final room=c.activeVoiceRoom;if(room==null)return const Scaffold(backgroundColor:_roomBlack,body:Center(child:Text('This room is no longer active')));if(c.roomGiftSerial!=seenGift){seenGift=c.roomGiftSerial;final gift=c.lastRoomGift;if(gift!=null&&gift['voiceRoomId']==c.activeVoiceRoomId)WidgetsBinding.instance.addPostFrameCallback((_){if(mounted)_playGift(gift);});}return Scaffold(backgroundColor:_roomBlack,body:SafeArea(child:Stack(children:[Column(children:[_roomHeader(context,c,room),Expanded(child:SingleChildScrollView(child:FadeTransition(opacity:entrance,child:Column(children:[_hostSeat(context,c,room),const SizedBox(height:12),_guestSeats(context,c,room),const SizedBox(height:12),_audience(context,c,room)])))),_chatLog(c),_bottomBar(context,c)])])));});
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<LudoController>(
+      builder: (context, c, _) {
+        final room = c.activeVoiceRoom;
+        if (room == null) {
+          return const Scaffold(
+            backgroundColor: _roomBlack,
+            body: Center(child: Text('This room is no longer active')),
+          );
+        }
+
+        if (c.roomGiftSerial != seenGift) {
+          seenGift = c.roomGiftSerial;
+          final gift = c.lastRoomGift;
+          if (gift != null && gift['voiceRoomId'] == c.activeVoiceRoomId) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _playGift(gift);
+            });
+          }
+        }
+
+        return Scaffold(
+          backgroundColor: _roomBlack,
+          body: SafeArea(
+            child: Stack(
+              children: [
+                Column(
+                  children: [
+                    _roomHeader(context, c, room),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: FadeTransition(
+                          opacity: entrance,
+                          child: Column(
+                            children: [
+                              _hostSeat(context, c, room),
+                              const SizedBox(height: 12),
+                              _guestSeats(context, c, room),
+                              const SizedBox(height: 12),
+                              _audience(context, c, room),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    _chatLog(c),
+                    _bottomBar(context, c),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _roomHeader(BuildContext context,LudoController c,Map<String,dynamic> room)=>Padding(padding:const EdgeInsets.fromLTRB(10,7,14,13),child:Row(children:[IconButton(onPressed:()=>_leave(context,c),icon:const Icon(Icons.arrow_back)),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('${room['title']}',maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontWeight:FontWeight.w900,fontSize:17)),Text('${room['category']}  •  ${room['listenerCount']} listeners  •  ✦ ${room['charm']} charm',style:const TextStyle(fontSize:10,color:Colors.white54))])),IconButton(tooltip:'Copy room ID',onPressed:(){Clipboard.setData(ClipboardData(text:c.activeVoiceRoomId??''));ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Room ID copied')));},icon:const Icon(Icons.ios_share,color:_roomGold))]));
   Widget _hostSeat(BuildContext context,LudoController c,Map<String,dynamic> room){final seats=room['seats'] as List? ?? [];final host=seats.isNotEmpty&&seats[0] is Map?Map<String,dynamic>.from(seats[0] as Map):null;return Column(children:[Padding(padding:const EdgeInsets.only(top:5,bottom:7),child:Text('HOST STAGE',style:TextStyle(color:_roomGold.withOpacity(.9),fontSize:10,fontWeight:FontWeight.w900,letterSpacing:2))),if(host!=null)_speakerTile(context,c,host,0,large:true)]);}
-  Widget _guestSeats(BuildContext context,LudoController c,Map<String,dynamic> room){final seats=room['seats'] as List? ?? [];final locked=room['lockedSeats'] as List? ?? [];return Padding(padding:const EdgeInsets.symmetric(horizontal:10),child(Column(children:[const Text('GUEST MICROPHONES',style:TextStyle(color:Colors.white38,fontSize:9,fontWeight:FontWeight.w900,letterSpacing:1.6)),const SizedBox(height:8),for(var row=0;row<2;row++)Padding(padding:const EdgeInsets.only(bottom:10),child:Row(children:[for(var column=0;column<4;column++)Expanded(child:Padding(padding:const EdgeInsets.symmetric(horizontal:4),child:_seat(context,c,room,seats,locked,1+row*4+column)))]))])));}
+  Widget _guestSeats(
+    BuildContext context,
+    LudoController c,
+    Map<String, dynamic> room,
+  ) {
+    final seats = room['seats'] as List? ?? [];
+    final locked = room['lockedSeats'] as List? ?? [];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Column(
+        children: [
+          const Text(
+            'GUEST MICROPHONES',
+            style: TextStyle(
+              color: Colors.white38,
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.6,
+            ),
+          ),
+          const SizedBox(height: 8),
+          for (var row = 0; row < 2; row++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                children: [
+                  for (var column = 0; column < 4; column++)
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: _seat(
+                          context,
+                          c,
+                          room,
+                          seats,
+                          locked,
+                          1 + row * 4 + column,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _seat(BuildContext context,LudoController c,Map<String,dynamic> room,List seats,List locked,int index){final speaker=index<seats.length&&seats[index] is Map?Map<String,dynamic>.from(seats[index] as Map):null;final isLocked=index<locked.length&&locked[index]==true;if(speaker!=null)return _speakerTile(context,c,speaker,index);final isHost=room['hostId']==c.userId;return InkWell(onTap:()=>isHost?_hostLockMenu(context,c,index,isLocked):isLocked?null:_takeSeat(context,c,index),borderRadius:BorderRadius.circular(14),child:Container(height:83,decoration:BoxDecoration(color:_roomPanel.withOpacity(.72),borderRadius:BorderRadius.circular(14),border:Border.all(color:isLocked?Colors.white12:_roomPink.withOpacity(.25),style:BorderStyle.solid)),child:Stack(children:[Center(child:Column(mainAxisSize:MainAxisSize.min,children:[Icon(isLocked?Icons.lock_outline:Icons.add_circle_outline,color:isLocked?Colors.white24:_roomPink,size:24),const SizedBox(height:3),Text(isLocked?'LOCKED':'TAKE SEAT',style:TextStyle(color:isLocked?Colors.white24:_roomPink,fontWeight:FontWeight.w900,fontSize:8))])),Positioned(left:6,top:5,child:_seatBadge(index))])));}
   Widget _speakerTile(BuildContext context,LudoController c,Map<String,dynamic> speaker,int index,{bool large=false}){
     final id='${speaker['userId']}';final mine=id==c.userId;final hot=speaker['micEnabled']==true;final host=speaker['userId']==c.activeVoiceRoom?['hostId'];final canKick=c.activeVoiceRoom?['hostId']==c.userId&&!mine;final size=large?86.0:52.0;
