@@ -169,7 +169,82 @@ class _MatchScreenState extends State<MatchScreen> with TickerProviderStateMixin
   void _onPlayerTap(LudoController c,LudoPlayer player){if(player.userId==c.userId){_showQuickChat(c);return;}if(!c.online){ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Gifts are available in online matches')));return;}showModalBottomSheet(context:context,backgroundColor:panel,builder:(_)=>_GiftTray(target:player,onSend:(gift)=>c.sendGift(player.userId,gift.id)));}
   void _showQuickChat(LudoController c){if(!c.online){ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Quick chat is available in online matches')));return;}showModalBottomSheet(context:context,backgroundColor:panel,builder:(_)=>_QuickChatTray(c));}
   void _showEmojiPicker(LudoController c){if(!c.online){ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Reactions are available in online matches')));return;}showModalBottomSheet(context:context,backgroundColor:panel,builder:(_)=>_EmojiTray(c));}
-  Future<void> _flyGift(GiftEvent gift)async{if(!mounted)return;final from=avatarKeys[gift.fromUserId]?.currentContext?.findRenderObject();final to=avatarKeys[gift.toUserId]?.currentContext?.findRenderObject();final overlay=Overlay.of(context);final overlayBox=overlay.context.findRenderObject();if(from is! RenderBox||to is! RenderBox||overlayBox is! RenderBox)return;final start=overlayBox.globalToLocal(from.localToGlobal(Offset(from.size.width/2,from.size.height/2)));final end=overlayBox.globalToLocal(to.localToGlobal(Offset(to.size.width/2,to.size.height/2)));final animation=AnimationController(vsync:this,duration:const Duration(milliseconds:1050));late final OverlayEntry entry;entry=OverlayEntry(builder:(_){final t=Curves.easeInOutCubic.transform(animation.value);final x=start.dx+(end.dx-start.dx)*t;final y=start.dy+(end.dy-start.dy)*t-sin(pi*t)*120;final scale=t<.82 ? .65+t*.65 : 1.18+.75*sin(((t-.82)/.18)*pi);return Positioned(left:x-26,top:y-26,child:IgnorePointer(child:Transform.scale(scale:scale,child:Container(width:52,height:52,decoration:BoxDecoration(color:const Color(0xFF35212B),shape:BoxShape.circle,border:Border.all(color:pink,width:2),boxShadow:const [BoxShadow(color:Color(0xAAFF599E),blurRadius:22)]),child:Center(child:Text(gift.gift.emoji,style:const TextStyle(fontSize:29))))));});giftFlights[animation]=entry;animation.addListener(entry.markNeedsBuild);overlay.insert(entry);await animation.forward();if(entry.mounted)entry.remove();giftFlights.remove(animation);animation.dispose();}
+  Future<void> _flyGift(GiftEvent gift) async {
+    if (!mounted) return;
+    final from = avatarKeys[gift.fromUserId]?.currentContext?.findRenderObject();
+    final to = avatarKeys[gift.toUserId]?.currentContext?.findRenderObject();
+    final overlay = Overlay.of(context);
+    final overlayBox = overlay.context.findRenderObject();
+    if (from is! RenderBox || to is! RenderBox || overlayBox is! RenderBox) return;
+
+    final start = overlayBox.globalToLocal(
+      from.localToGlobal(Offset(from.size.width / 2, from.size.height / 2)),
+    );
+    final end = overlayBox.globalToLocal(
+      to.localToGlobal(Offset(to.size.width / 2, to.size.height / 2)),
+    );
+
+    final animation = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1050),
+    );
+    late final OverlayEntry entry;
+
+    entry = OverlayEntry(
+      builder: (_) {
+        final t = Curves.easeInOutCubic.transform(animation.value);
+        final x = start.dx + (end.dx - start.dx) * t;
+        final y = start.dy + (end.dy - start.dy) * t - sin(pi * t) * 120;
+        final scale = t < .82
+            ? .65 + t * .65
+            : 1.18 + .75 * sin(((t - .82) / .18) * pi);
+
+        return Positioned(
+          left: x - 26,
+          top: y - 26,
+          child: IgnorePointer(
+            child: Transform.scale(
+              scale: scale,
+              child: Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF35212B),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFFF599E), width: 2),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0xAAFF599E),
+                      blurRadius: 22,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    gift.gift.emoji,
+                    style: const TextStyle(fontSize: 29),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    giftFlights[animation] = entry;
+    animation.addListener(entry.markNeedsBuild);
+    overlay.insert(entry);
+
+    await animation.forward();
+
+    if (entry.mounted) {
+      entry.remove();
+    }
+    giftFlights.remove(animation);
+    animation.dispose();
+  }
+
   void _showResult(LudoController c){showDialog(context:context,barrierDismissible:false,builder:(_)=>AlertDialog(backgroundColor:panel,content:Column(mainAxisSize:MainAxisSize.min,children:[TweenAnimationBuilder<double>(tween:Tween(begin:.45,end:1),duration:const Duration(milliseconds:650),curve:Curves.elasticOut,builder:(context,value,child)=>Transform.scale(scale:value,child:child),child:Icon(c.didWin==true?Icons.emoji_events:Icons.flag,color:c.didWin==true?gold:pink,size:58)),const SizedBox(height:10),Text(c.didWin==true?'VICTORY!':'MATCH COMPLETE',style:const TextStyle(fontWeight:FontWeight.w900,fontSize:22)),const SizedBox(height:8),Text(c.didWin==true?'You earned ${c.matchPrize} coins':'Good game. Your next table is waiting.',textAlign:TextAlign.center,style:const TextStyle(color:Colors.white70))]),actions:[ElevatedButton(onPressed:(){Navigator.pop(context);c.reset();Navigator.pop(context);},child:const Text('BACK TO LOBBY'))]));}
 }
 
