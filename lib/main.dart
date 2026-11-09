@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'ludo_controller.dart';
 import 'economy_pages.dart';
+import 'game_audio.dart';
 import 'voice_rooms_page.dart';
 
 const black=Color(0xFF151515), panel=Color(0xFF2D2D2D), pink=Color(0xFFFF599E), gold=Color(0xFFFFD34E);
@@ -308,23 +310,365 @@ class _MatchScreenState extends State<MatchScreen> with TickerProviderStateMixin
     animation.dispose();
   }
 
-  void _showResult(LudoController c){showDialog(context:context,barrierDismissible:false,builder:(_)=>AlertDialog(backgroundColor:panel,content:Column(mainAxisSize:MainAxisSize.min,children:[TweenAnimationBuilder<double>(tween:Tween(begin:.45,end:1),duration:const Duration(milliseconds:650),curve:Curves.elasticOut,builder:(context,value,child)=>Transform.scale(scale:value,child:child),child:Icon(c.didWin==true?Icons.emoji_events:Icons.flag,color:c.didWin==true?gold:pink,size:58)),const SizedBox(height:10),Text(c.didWin==true?'VICTORY!':'MATCH COMPLETE',style:const TextStyle(fontWeight:FontWeight.w900,fontSize:22)),const SizedBox(height:8),Text(c.didWin==true?'You earned ${c.matchPrize} coins':'Good game. Your next table is waiting.',textAlign:TextAlign.center,style:const TextStyle(color:Colors.white70))]),actions:[ElevatedButton(onPressed:(){Navigator.pop(context);c.reset();Navigator.pop(context);},child:const Text('BACK TO LOBBY'))]));}
+  void _showResult(LudoController c){unawaited(GameAudio.victory());showDialog(context:context,barrierDismissible:false,builder:(_)=>AlertDialog(backgroundColor:panel,content:Column(mainAxisSize:MainAxisSize.min,children:[TweenAnimationBuilder<double>(tween:Tween(begin:.45,end:1),duration:const Duration(milliseconds:650),curve:Curves.elasticOut,builder:(context,value,child)=>Transform.scale(scale:value,child:child),child:Icon(c.didWin==true?Icons.emoji_events:Icons.flag,color:c.didWin==true?gold:pink,size:58)),const SizedBox(height:10),Text(c.didWin==true?'VICTORY!':'MATCH COMPLETE',style:const TextStyle(fontWeight:FontWeight.w900,fontSize:22)),const SizedBox(height:8),Text(c.didWin==true?'You earned ${c.matchPrize} coins':'Good game. Your next table is waiting.',textAlign:TextAlign.center,style:const TextStyle(color:Colors.white70))]),actions:[ElevatedButton(onPressed:(){Navigator.pop(context);c.reset();Navigator.pop(context);},child:const Text('BACK TO LOBBY'))]));}
 }
 
 class _PlayersBar extends StatelessWidget{final LudoController c;final GlobalKey Function(LudoPlayer) keyFor;final void Function(LudoPlayer) onTap;const _PlayersBar(this.c,{required this.keyFor,required this.onTap});@override Widget build(BuildContext context)=>Padding(padding:const EdgeInsets.symmetric(horizontal:7,vertical:4),child:Row(mainAxisAlignment:MainAxisAlignment.spaceAround,children:c.players.map((p){final isActive=c.players.indexOf(p)==c.currentPlayer;final mic=p.userId==c.userId?c.micEnabled:p.micEnabled;return GestureDetector(onTap:()=>onTap(p),child:SizedBox(width:78,child:Column(mainAxisSize:MainAxisSize.min,children:[AnimatedSwitcher(duration:const Duration(milliseconds:180),transitionBuilder:(child,animation)=>ScaleTransition(scale:CurvedAnimation(parent:animation,curve:Curves.elasticOut),child:FadeTransition(opacity:animation,child:child)),child:p.lastEmoji!=null?Text(p.lastEmoji!,key:ValueKey('${p.userId}:emoji:${p.reactionSerial}'),style:const TextStyle(fontSize:25)):p.lastChat!=null?Container(key:ValueKey('${p.userId}:chat:${p.reactionSerial}'),constraints:const BoxConstraints(maxWidth:100),padding:const EdgeInsets.symmetric(horizontal:7,vertical:4),decoration:BoxDecoration(color:const Color(0xFF3A2631),borderRadius:BorderRadius.circular(10),border:Border.all(color:pink.withOpacity(.6))),child:Text(p.lastChat!,textAlign:TextAlign.center,maxLines:2,style:const TextStyle(fontSize:9,fontWeight:FontWeight.bold))):const SizedBox(height:29)),Stack(clipBehavior:Clip.none,children:[_VoiceAvatar(player:p,key:keyFor(p),speaking:mic,active:isActive),if(c.voiceJoined&&p.userId!=c.userId)Positioned(right:-8,bottom:-3,child:GestureDetector(onTap:()=>c.togglePeerMute(p.userId),child:Container(width:19,height:19,decoration:const BoxDecoration(color:panel,shape:BoxShape.circle),child:Icon(c.isPeerMuted(p.userId)?Icons.volume_off:Icons.volume_up,size:12,color:c.isPeerMuted(p.userId)?pink:Colors.white70))))]),const SizedBox(height:3),Text(p.name.length>9?'${p.name.substring(0,8)}…':p.name,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(fontSize:10,color:isActive?Colors.white:Colors.white54)),if(p.autoPlay)const Text('AUTO',style:TextStyle(color:pink,fontSize:8,fontWeight:FontWeight.bold))])));}).toList()));}
 class _VoiceAvatar extends StatefulWidget{final LudoPlayer player;final bool speaking,active;const _VoiceAvatar({super.key,required this.player,required this.speaking,required this.active});@override State<_VoiceAvatar> createState()=>_VoiceAvatarState();}
 class _VoiceAvatarState extends State<_VoiceAvatar> with SingleTickerProviderStateMixin{late final AnimationController pulse;@override void initState(){super.initState();pulse=AnimationController(vsync:this,duration:const Duration(milliseconds:750));if(widget.speaking)pulse.repeat(reverse:true);}@override void didUpdateWidget(covariant _VoiceAvatar oldWidget){super.didUpdateWidget(oldWidget);if(widget.speaking&&!pulse.isAnimating)pulse.repeat(reverse:true);if(!widget.speaking)pulse..stop()..value=0;}@override void dispose(){pulse.dispose();super.dispose();}@override Widget build(BuildContext context)=>AnimatedBuilder(animation:pulse,builder:(context,_) {final glow=widget.speaking ? .35+.45*pulse.value : 0.0;return Container(width:48,height:48,decoration:BoxDecoration(shape:BoxShape.circle,color:colors[widget.player.color]!.withOpacity(.16),border:Border.all(color:widget.speaking?pink:widget.active?colors[widget.player.color]!:Colors.white24,width:widget.speaking||widget.active?2.5:1),boxShadow:widget.speaking?[BoxShadow(color:pink.withOpacity(glow),blurRadius:10+12*pulse.value,spreadRadius:1+2*pulse.value)]:[]),child:Center(child:Text(widget.player.avatar,style:const TextStyle(fontSize:22))));});}
 
-class BoardView extends StatelessWidget{final LudoController c;const BoardView(this.c);@override Widget build(BuildContext context)=>LayoutBuilder(builder:(context,b){final side=min(b.maxWidth,b.maxHeight).toDouble(),cell=side/15;return Container(decoration:BoxDecoration(color:const Color(0xFF202020),border:Border.all(color:Colors.white12),borderRadius:BorderRadius.circular(7)),child:ClipRRect(borderRadius:BorderRadius.circular(6),child:GridView.builder(padding:EdgeInsets.zero,physics:const NeverScrollableScrollPhysics(),gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount:15),itemCount:225,itemBuilder:(context,i)=>_Cell(i,cell,c))));});}
-class _Cell extends StatelessWidget{final int index;final double cell;final LudoController c;const _Cell(this.index,this.cell,this.c);@override Widget build(BuildContext context){final r=index~/15,col=index%15;final base=_base(r,col),home=_home(r,col),trackIndex=LudoController.track.indexOf(index);Color? bg=base==null?home==null?null:colors[home]!.withOpacity(.65):colors[base]!.withOpacity(.46);if(trackIndex>=0)bg=const Color(0xFF383838);if(r>=6&&r<=8&&col>=6&&col<=8&&bg==null)bg=const Color(0xFF303030);final tokens=<Token>[];for(final p in c.players)for(final t in p.tokens)if(_tokenCell(t)==index)tokens.add(t);final stack=<Widget>[];if(bg!=null)stack.add(Container(color:bg));if(trackIndex>=0&&LudoController.safeSquares.contains(trackIndex))stack.add(Center(child:Icon(Icons.star,size:cell*.62,color:trackIndex==0?colors[PlayerColor.red]:trackIndex==13?colors[PlayerColor.green]:trackIndex==26?colors[PlayerColor.yellow]:trackIndex==39?colors[PlayerColor.blue]:Colors.white60)));if(base!=null&&((r%9==1||r%9==4)&&(col%9==1||col%9==4)))stack.add(Center(child:Container(width:cell*.48,height:cell*.48,decoration:BoxDecoration(color:colors[base],shape:BoxShape.circle))));if(r>=6&&r<=8&&col>=6&&col<=8&&r==7&&col==7)stack.add(const Center(child:Icon(Icons.star,color:Colors.white)));if(tokens.isNotEmpty)stack.add(_Stack(tokens,cell,c));return Container(decoration:BoxDecoration(border:Border.all(color:Colors.white.withOpacity(.05),width:.45)),child:Stack(fit:StackFit.expand,children:stack));}
-  PlayerColor? _base(int r,int c){if(r<6&&c<6)return PlayerColor.red;if(r<6&&c>8)return PlayerColor.green;if(r>8&&c>8)return PlayerColor.yellow;if(r>8&&c<6)return PlayerColor.blue;return null;}
-  PlayerColor? _home(int r,int c){if(r==7&&c>=1&&c<=6)return PlayerColor.red;if(c==7&&r>=1&&r<=6)return PlayerColor.green;if(r==7&&c>=8&&c<=13)return PlayerColor.yellow;if(c==7&&r>=8&&r<=13)return PlayerColor.blue;return null;}
-  int? _tokenCell(Token t){if(t.atBase){final colors=[PlayerColor.red,PlayerColor.green,PlayerColor.yellow,PlayerColor.blue],coords=[[0,0],[0,9],[9,9],[9,0]],seat=colors.indexOf(t.color),locs=[[1,1],[1,4],[4,1],[4,4]],top=coords[seat],loc=locs[t.id];return(top[0]+loc[0])*15+top[1]+loc[1];}if(t.finished)return 112;if(t.progress<=51)return LudoController.track[(t.color.start+t.progress)%52];return t.color.homeCells[t.progress-52];}
+class BoardView extends StatelessWidget {
+  const BoardView(this.c);
+
+  final LudoController c;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, constraints) {
+          final side = min(constraints.maxWidth, constraints.maxHeight).toDouble();
+          final cell = side / 15;
+
+          return Container(
+            width: side,
+            height: side,
+            decoration: BoxDecoration(
+              color: const Color(0xFF202020),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFFFD34E), width: 1.4),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x5532B7FF),
+                  blurRadius: 18,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(9),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(
+                    'assets/images/safe_zone.png',
+                    fit: BoxFit.fill,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const _BoardFallback(),
+                  ),
+                  GridView.builder(
+                    padding: EdgeInsets.zero,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 15,
+                    ),
+                    itemCount: 225,
+                    itemBuilder: (context, index) => _Cell(index, cell, c),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
 }
-class _Stack extends StatelessWidget{final List<Token> tokens;final double cell;final LudoController c;const _Stack(this.tokens,this.cell,this.c);@override Widget build(BuildContext context){final count=tokens.length,enabled=tokens.any((t)=>c.legalTokens.contains(t))&&(!c.online||c.active.userId==c.userId&&!c.autoPlay);final size=(cell*.72/sqrt(count)).clamp(cell*.36,cell*.76).toDouble();return Center(child:GestureDetector(onTap:enabled?(){final t=tokens.firstWhere((t)=>c.legalTokens.contains(t),orElse:()=>tokens.first);c.move(t);}:null,child:AnimatedSwitcher(duration:const Duration(milliseconds:220),transitionBuilder:(child,animation)=>FadeTransition(opacity:animation,child:ScaleTransition(scale:animation,child:child)),child:Stack(key:ValueKey(tokens.map((t)=>'${t.color.name}:${t.id}:${t.progress}').join(',')),clipBehavior:Clip.none,alignment:Alignment.center,children:[for(var i=0;i<min(count,4);i++)Transform.translate(offset:Offset(i.isEven?-cell*.08:cell*.08,i<2?-cell*.08:cell*.08),child:Container(width:size,height:size,decoration:BoxDecoration(color:colors[tokens[i].color],shape:BoxShape.circle,border:Border.all(color:Colors.white,width:1.2),boxShadow:[BoxShadow(color:colors[tokens[i].color]!.withOpacity(enabled ? .7 : .25),blurRadius:enabled?8:3)]),child:Center(child:Text('${tokens[i].id+1}',style:TextStyle(color:Colors.black,fontSize:size*.4,fontWeight:FontWeight.w900))))),if(count>1)Positioned(right:-cell*.1,top:-cell*.1,child:Container(padding:const EdgeInsets.all(2),decoration:const BoxDecoration(color:Colors.white,borderRadius:BorderRadius.all(Radius.circular(9))),child:Text('$count',style:const TextStyle(color:Colors.black,fontSize:8,fontWeight:FontWeight.bold))))]))));}}
 
-class _MatchControls extends StatelessWidget{final LudoController c;final VoidCallback onQuickChat,onEmoji;const _MatchControls(this.c,{required this.onQuickChat,required this.onEmoji});@override Widget build(BuildContext context)=>Padding(padding:const EdgeInsets.fromLTRB(12,5,12,13),child:Column(children:[Row(children:[Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(c.status,style:const TextStyle(fontWeight:FontWeight.bold,fontSize:15)),Text(c.online?'Online match • Prize ${c.matchPrize}':'${c.mode.name.toUpperCase()} • ${c.playerCount} players',style:const TextStyle(color:Colors.white54,fontSize:11))])),_Countdown(c.secondsLeft,c.players.isEmpty?pink:colors[c.active.color]!)]),const SizedBox(height:10),Row(children:[GestureDetector(onTap:c.dice==0&&!c.rolling?c.rollDice:null,child:Container(width:62,height:62,decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFFFF72AE),Color(0xFFEF3783)]),borderRadius:BorderRadius.circular(16),boxShadow:const [BoxShadow(color:Color(0x88FF599E),blurRadius:16,offset:Offset(0,5))]),child:Center(child:c.rolling?const SizedBox(width:24,height:24,child:CircularProgressIndicator(color:Colors.white,strokeWidth:3)):Text(c.dice==0?'🎲':['','⚀','⚁','⚂','⚃','⚄','⚅'][c.dice],style:const TextStyle(fontSize:30))))),const Spacer(),if(c.online)IconButton(tooltip:c.micEnabled?'Mute microphone':'Unmute microphone',onPressed:c.voiceJoined?()=>c.setMicEnabled(!c.micEnabled):c.joinMatchVoice,icon:Icon(c.micEnabled?Icons.mic:Icons.mic_off,color:c.micEnabled?pink:Colors.white70)),if(c.online)IconButton(tooltip:c.speakerMuted?'Unmute speakers':'Mute speakers',onPressed:()=>c.setSpeakerMuted(!c.speakerMuted),icon:Icon(c.speakerMuted?Icons.volume_off:Icons.volume_up,color:c.speakerMuted?pink:Colors.white70)),if(c.online)IconButton(tooltip:'Quick chat',onPressed:onQuickChat,icon:const Icon(Icons.chat_bubble_outline,color:Colors.white70)),if(c.online)IconButton(tooltip:'Emoji reactions',onPressed:onEmoji,icon:const Icon(Icons.emoji_emotions_outlined,color:gold)),if(c.autoPlay)TextButton(onPressed:c.resumeAutoPlay,child:const Text('I’M BACK',style:TextStyle(color:pink,fontWeight:FontWeight.w900)))]),if(c.voiceError!=null)Padding(padding:const EdgeInsets.only(top:5),child:Text(c.voiceError!,maxLines:2,style:const TextStyle(color:Colors.orangeAccent,fontSize:10))),if(c.autoPlay)Container(width:double.infinity,margin:const EdgeInsets.only(top:8),padding:const EdgeInsets.all(9),decoration:BoxDecoration(color:pink.withOpacity(.16),borderRadius:BorderRadius.circular(12)),child:const Text('AUTO-PLAY ACTIVE  •  TAP TO RESUME',textAlign:TextAlign.center,style:TextStyle(color:pink,fontWeight:FontWeight.w900,fontSize:11)))]));}
+class _BoardFallback extends StatelessWidget {
+  const _BoardFallback();
 
+  @override
+  Widget build(BuildContext context) => GridView.builder(
+        padding: EdgeInsets.zero,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 15,
+        ),
+        itemCount: 225,
+        itemBuilder: (context, index) => Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF303030),
+            border: Border.all(color: Colors.white24, width: .5),
+          ),
+        ),
+      );
+}
+
+class _Cell extends StatelessWidget {
+  const _Cell(this.index, this.cell, this.c);
+
+  final int index;
+  final double cell;
+  final LudoController c;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = <Token>[];
+
+    for (final player in c.players) {
+      for (final token in player.tokens) {
+        if (_tokenCell(token) == index) tokens.add(token);
+      }
+    }
+
+    if (tokens.isEmpty) return const SizedBox.expand();
+    return _Stack(tokens, cell, c);
+  }
+
+  int _tokenCell(Token token) {
+    if (token.atBase) {
+      const playerColors = [
+        PlayerColor.red,
+        PlayerColor.green,
+        PlayerColor.yellow,
+        PlayerColor.blue,
+      ];
+      const bases = [
+        [0, 0], [0, 9], [9, 9], [9, 0],
+      ];
+      const tokenOffsets = [
+        [1, 1], [1, 4], [4, 1], [4, 4],
+      ];
+      final seat = playerColors.indexOf(token.color);
+      final base = bases[seat];
+      final offset = tokenOffsets[token.id];
+      return (base[0] + offset[0]) * 15 + base[1] + offset[1];
+    }
+
+    if (token.finished) return 112;
+    if (token.progress <= 51) {
+      return LudoController.track[(token.color.start + token.progress) % 52];
+    }
+    return token.color.homeCells[token.progress - 52];
+  }
+}
+class _Stack extends StatelessWidget{final List<Token> tokens;final double cell;final LudoController c;const _Stack(this.tokens,this.cell,this.c);@override Widget build(BuildContext context){final count=tokens.length,enabled=tokens.any((t)=>c.legalTokens.contains(t))&&(!c.online||c.active.userId==c.userId&&!c.autoPlay);final size=(cell*.72/sqrt(count)).clamp(cell*.36,cell*.76).toDouble();return Center(child:GestureDetector(onTap:enabled?(){final t=tokens.firstWhere((t)=>c.legalTokens.contains(t),orElse:()=>tokens.first);unawaited(GameAudio.tokenMove());c.move(t);}:null,child:AnimatedSwitcher(duration:const Duration(milliseconds:220),transitionBuilder:(child,animation)=>FadeTransition(opacity:animation,child:ScaleTransition(scale:animation,child:child)),child:Stack(key:ValueKey(tokens.map((t)=>'${t.color.name}:${t.id}:${t.progress}').join(',')),clipBehavior:Clip.none,alignment:Alignment.center,children:[for(var i=0;i<min(count,4);i++)Transform.translate(offset:Offset(i.isEven?-cell*.08:cell*.08,i<2?-cell*.08:cell*.08),child:Container(width:size,height:size,decoration:BoxDecoration(color:colors[tokens[i].color],shape:BoxShape.circle,border:Border.all(color:Colors.white,width:1.2),boxShadow:[BoxShadow(color:colors[tokens[i].color]!.withOpacity(enabled ? .7 : .25),blurRadius:enabled?8:3)]),child:Center(child:Text('${tokens[i].id+1}',style:TextStyle(color:Colors.black,fontSize:size*.4,fontWeight:FontWeight.w900))))),if(count>1)Positioned(right:-cell*.1,top:-cell*.1,child:Container(padding:const EdgeInsets.all(2),decoration:const BoxDecoration(color:Colors.white,borderRadius:BorderRadius.all(Radius.circular(9))),child:Text('$count',style:const TextStyle(color:Colors.black,fontSize:8,fontWeight:FontWeight.bold))))]))));}}
+
+class _MatchControls extends StatelessWidget {
+  const _MatchControls(
+    this.c, {
+    required this.onQuickChat,
+    required this.onEmoji,
+  });
+
+  final LudoController c;
+  final VoidCallback onQuickChat;
+  final VoidCallback onEmoji;
+
+  @override
+  Widget build(BuildContext context) {
+    final activeColor = c.players.isEmpty ? pink : colors[c.active.color]!;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      c.status,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      c.online
+                          ? 'Online match  •  Prize ${c.matchPrize}'
+                          : '${c.mode.name.toUpperCase()}  •  ${c.playerCount} players',
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _Countdown(c.secondsLeft, activeColor),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF242124),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withOpacity(.07)),
+            ),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: c.dice == 0 && !c.rolling
+                      ? () {
+                          unawaited(GameAudio.dice());
+                          c.rollDice();
+                        }
+                      : null,
+                  child: AnimatedScale(
+                    scale: c.rolling ? .92 : 1,
+                    duration: const Duration(milliseconds: 110),
+                    child: Container(
+                      width: 62,
+                      height: 62,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFFFF76B0), Color(0xFFE82F7B)],
+                        ),
+                        borderRadius: BorderRadius.circular(17),
+                        border: Border.all(
+                          color: const Color(0xFFFFD3E4),
+                          width: 1.2,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x99FF599E),
+                            blurRadius: 18,
+                            offset: Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: c.rolling
+                            ? TweenAnimationBuilder<double>(
+                                key: const ValueKey('dice-roll'),
+                                tween: Tween(begin: 0, end: 5),
+                                duration: const Duration(milliseconds: 650),
+                                builder: (context, turns, child) => Transform.rotate(
+                                  angle: turns * 2 * pi,
+                                  child: child,
+                                ),
+                                child: const Icon(
+                                  Icons.casino_rounded,
+                                  color: Colors.white,
+                                  size: 37,
+                                ),
+                              )
+                            : c.dice == 0
+                                ? Image.asset(
+                                    'assets/images/golden_dice.png',
+                                    width: 42,
+                                    height: 42,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        const Icon(
+                                      Icons.casino_rounded,
+                                      color: Colors.white,
+                                      size: 37,
+                                    ),
+                                  )
+                                : Text(
+                                    const [
+                                      '', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅',
+                                    ][c.dice],
+                                    style: const TextStyle(fontSize: 34),
+                                  ),
+                      ),
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                if (c.online) ...[
+                  _ControlButton(
+                    tooltip: c.micEnabled ? 'Mute microphone' : 'Unmute microphone',
+                    icon: c.micEnabled ? Icons.mic : Icons.mic_off,
+                    selected: c.micEnabled,
+                    onPressed: c.voiceJoined
+                        ? () => c.setMicEnabled(!c.micEnabled)
+                        : c.joinMatchVoice,
+                  ),
+                  _ControlButton(
+                    tooltip: c.speakerMuted ? 'Enable speaker audio' : 'Mute speaker audio',
+                    icon: c.speakerMuted ? Icons.volume_off : Icons.volume_up,
+                    selected: c.speakerMuted,
+                    onPressed: () => c.setSpeakerMuted(!c.speakerMuted),
+                  ),
+                  _ControlButton(
+                    tooltip: 'Quick chat',
+                    icon: Icons.chat_bubble_outline,
+                    onPressed: onQuickChat,
+                  ),
+                  _ControlButton(
+                    tooltip: 'Emoji reactions',
+                    icon: Icons.emoji_emotions_outlined,
+                    selected: true,
+                    onPressed: onEmoji,
+                  ),
+                ],
+                if (c.autoPlay)
+                  TextButton(
+                    onPressed: c.resumeAutoPlay,
+                    child: const Text(
+                      'I’M BACK',
+                      style: TextStyle(color: pink, fontWeight: FontWeight.w900),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (c.voiceError != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                c.voiceError!,
+                maxLines: 2,
+                style: const TextStyle(color: Colors.orangeAccent, fontSize: 10),
+              ),
+            ),
+          if (c.autoPlay)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.all(9),
+              decoration: BoxDecoration(
+                color: pink.withOpacity(.16),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'AUTO-PLAY ACTIVE  •  TAP TO RESUME',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: pink,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 11,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ControlButton extends StatelessWidget {
+  const _ControlButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+    this.selected = false,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback onPressed;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+        tooltip: tooltip,
+        visualDensity: VisualDensity.compact,
+        onPressed: onPressed,
+        icon: Icon(
+          icon,
+          color: selected ? pink : Colors.white70,
+          size: 21,
+        ),
+      );
+}
 class _QuickChatTray extends StatelessWidget{final LudoController c;const _QuickChatTray(this.c);@override Widget build(BuildContext context)=>SafeArea(child:Padding(padding:const EdgeInsets.all(17),child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('QUICK CHAT',style:TextStyle(fontWeight:FontWeight.w900,color:pink,letterSpacing:1.4)),const SizedBox(height:8),for(final phrase in LudoController.quickChatPhrases)ListTile(leading:const Icon(Icons.chat_bubble_outline,color:pink),title:Text(phrase),onTap:(){c.sendQuickChat(phrase);Navigator.pop(context);})])));}
 class _EmojiTray extends StatelessWidget{final LudoController c;const _EmojiTray(this.c);@override Widget build(BuildContext context)=>SafeArea(child:Padding(padding:const EdgeInsets.all(17),child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('SEND A REACTION',style:TextStyle(fontWeight:FontWeight.w900,color:gold,letterSpacing:1.2)),const SizedBox(height:12),Wrap(spacing:10,runSpacing:8,children:[for(final emoji in LudoController.quickEmojis)InkWell(onTap:(){c.sendEmoji(emoji);Navigator.pop(context);},borderRadius:BorderRadius.circular(15),child:Container(width:52,height:52,decoration:BoxDecoration(color:black,borderRadius:BorderRadius.circular(15)),child:Center(child:Text(emoji,style:const TextStyle(fontSize:27)))))] )])));}
 class _GiftTray extends StatefulWidget{final LudoPlayer target;final Future<bool> Function(GiftItem gift) onSend;const _GiftTray({required this.target,required this.onSend});@override State<_GiftTray> createState()=>_GiftTrayState();}

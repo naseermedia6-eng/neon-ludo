@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'webrtc_voice_service.dart';
+import 'game_audio.dart';
 
 enum PlayerColor { red, green, yellow, blue }
 enum GameMode { classic, quick }
@@ -286,7 +287,7 @@ class LudoController extends ChangeNotifier {
     currentPlayer=(source.isNotEmpty?0:0);_setDeadline(null);
   }
   void _onDiceRolled(dynamic data){if(data is! Map)return;dice=(data['value'] as num?)?.toInt()??0;rolling=false;status='${data['color']??'Player'} rolled $dice';notifyListeners();}
-  void _onTokenMoved(dynamic data){if(data is! Map)return;final p=players.where((p)=>p.userId=='${data['userId']}').firstOrNull;final tokenId=(data['tokenId'] as num?)?.toInt()??-1;if(p!=null&&tokenId>=0&&tokenId<4){p.tokens[tokenId].progress=(data['progress'] as num?)?.toInt()??p.tokens[tokenId].progress;final captured=data['captured'];if(captured is List)for(final cap in captured){if(cap is Map){final victim=players.where((p)=>p.userId=='${cap['userId']}').firstOrNull;final id=(cap['tokenId'] as num?)?.toInt()??-1;if(victim!=null&&id>=0&&id<4)victim.tokens[id].progress=-1;}}p.captures+=captured is List?captured.length:0;totalCaptures+=captured is List?captured.length:0;}
+  void _onTokenMoved(dynamic data){if(data is! Map)return;final p=players.where((p)=>p.userId=='${data['userId']}').firstOrNull;final tokenId=(data['tokenId'] as num?)?.toInt()??-1;if(p!=null&&tokenId>=0&&tokenId<4){p.tokens[tokenId].progress=(data['progress'] as num?)?.toInt()??p.tokens[tokenId].progress;final captured=data['captured'];if(captured is List){if(captured.isNotEmpty)unawaited(GameAudio.tokenCapture());for(final cap in captured){if(cap is Map){final victim=players.where((p)=>p.userId=='${cap['userId']}').firstOrNull;final id=(cap['tokenId'] as num?)?.toInt()??-1;if(victim!=null&&id>=0&&id<4)victim.tokens[id].progress=-1;}}}p.captures+=captured is List?captured.length:0;totalCaptures+=captured is List?captured.length:0;}
     dice=0;status=data['captured'] is List&&(data['captured'] as List).isNotEmpty?'Token captured!':'Token moved';notifyListeners();
   }
   void _onTurnChanged(dynamic data){if(data is! Map)return;currentPlayer=(data['currentPlayer'] as num?)?.toInt()??0;final deadline=(data['deadline'] as num?)?.toInt();_setDeadline(deadline==null?null:DateTime.fromMillisecondsSinceEpoch(deadline));if(currentPlayer>=0&&currentPlayer<players.length)status=players[currentPlayer].userId==userId?'Your turn':'${players[currentPlayer].name} to play';notifyListeners();}
