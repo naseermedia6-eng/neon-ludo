@@ -29,7 +29,7 @@ typedef QueueAction=void Function({required GameMode mode,required int count,req
 typedef OfflineAction=void Function(GameMode mode,int count,bool bot);
 class LobbyHome extends StatefulWidget { final VoidCallback onOpenMatch;final QueueAction onQueue;final OfflineAction onOffline;final VoidCallback onPrivate;const LobbyHome({super.key,required this.onOpenMatch,required this.onQueue,required this.onOffline,required this.onPrivate});@override State<LobbyHome> createState()=>_LobbyHomeState(); }
 class _LobbyHomeState extends State<LobbyHome> { int count=2;GameMode mode=GameMode.classic;
-  @override Widget build(BuildContext context)=>Consumer<LudoController>(builder:(context,c,_)=>ListView(padding:const EdgeInsets.fromLTRB(18,14,18,30),children:[Row(children:[const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('Choose your table',style:TextStyle(fontSize:25,fontWeight:FontWeight.w900)),SizedBox(height:4),Text('Play for fun. Make every move count.',style:TextStyle(color:Colors.white54))]),Container(padding:const EdgeInsets.symmetric(horizontal:11,vertical:7),decoration:BoxDecoration(color:panel,borderRadius:BorderRadius.circular(20)),child:Row(children:[Icon(Icons.circle,size:8,color:c.connected?const Color(0xFF23E6A8):Colors.orange),const SizedBox(width:6),Text(c.connected?'ONLINE':'CONNECTING',style:const TextStyle(fontSize:10,fontWeight:FontWeight.bold))]))]),const SizedBox(height:15),Wrap(spacing:8,runSpacing:8,children:[_featureAction(Icons.casino,'DAILY SPIN',()=>showDialog(context:context,builder:(_)=>const DailySpinDialog())),_featureAction(Icons.calendar_month,'7-DAY BONUS',()=>showDialog(context:context,builder:(_)=>const DailyCheckinDialog())),_featureAction(Icons.leaderboard,'LEADERBOARD',()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>const LeaderboardScreen())))]),const SizedBox(height:22),_label('CLASSIC ONLINE'),Row(children:[_toggle(2),const SizedBox(width:10),_toggle(4)]),const SizedBox(height:12),_modeCard(icon:Icons.emoji_events,title:'Classic Online',subtitle:'Race all tokens home • 2 or 4 players',accent:gold,onTap:()=>_pickFee(GameMode.classic)),const SizedBox(height:12),_modeCard(icon:Icons.bolt,title:'Quick Mode',subtitle:'First token home wins • Capture to unlock home',accent:pink,onTap:()=>_pickFee(GameMode.quick)),const SizedBox(height:22),_label('PLAY TOGETHER'),_modeCard(icon:Icons.lock_outline,title:'Private Room',subtitle:'Create a 6-digit room code or join a friend',accent:const Color(0xFF45B7FF),onTap:widget.onPrivate),const SizedBox(height:12),Row(children:[Expanded(child:_smallCard(Icons.people,'Pass & Play','Local table',()=>widget.onOffline(mode,count,false))),const SizedBox(width:10),Expanded(child:_smallCard(Icons.smart_toy_outlined,'vs Computer','Offline bots',()=>widget.onOffline(mode,count,true)))]),const SizedBox(height:20),Container(padding:const EdgeInsets.all(17),decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFF382A20),Color(0xFF24211D)]),borderRadius:BorderRadius.circular(18),border:Border.all(color:gold.withOpacity(.2))),child:Row(children:[const Icon(Icons.local_fire_department,color:gold,size:29),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('Daily welcome bonus',style:TextStyle(fontWeight:FontWeight.bold)),Text('Your wallet is ready for the next match.',style:TextStyle(color:Colors.white.withOpacity(.57),fontSize:12))])),Text('LVL ${c.level}',style:const TextStyle(color:gold,fontWeight:FontWeight.w900))]))]));
+  @override Widget build(BuildContext context)=>Consumer<LudoController>(builder:(context,c,_)=>ListView(padding:const EdgeInsets.fromLTRB(18,14,18,30),children:[Row(children:[const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('Choose your table',style:TextStyle(fontSize:25,fontWeight:FontWeight.w900)),SizedBox(height:4),Text('Play for fun. Make every move count.',style:TextStyle(color:Colors.white54))])),Container(padding:const EdgeInsets.symmetric(horizontal:11,vertical:7),decoration:BoxDecoration(color:panel,borderRadius:BorderRadius.circular(20)),child:Row(children:[Icon(Icons.circle,size:8,color:c.connected?const Color(0xFF23E6A8):Colors.orange),const SizedBox(width:6),Text(c.connected?'ONLINE':'CONNECTING',style:const TextStyle(fontSize:10,fontWeight:FontWeight.bold))]))]),const SizedBox(height:15),Wrap(spacing:8,runSpacing:8,children:[_featureAction(Icons.casino,'DAILY SPIN',()=>showDialog(context:context,builder:(_)=>const DailySpinDialog())),_featureAction(Icons.calendar_month,'7-DAY BONUS',()=>showDialog(context:context,builder:(_)=>const DailyCheckinDialog())),_featureAction(Icons.leaderboard,'LEADERBOARD',()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>const LeaderboardScreen())))]),const SizedBox(height:22),_label('CLASSIC ONLINE'),Row(children:[_toggle(2),const SizedBox(width:10),_toggle(4)]),const SizedBox(height:12),_modeCard(icon:Icons.emoji_events,title:'Classic Online',subtitle:'Race all tokens home • 2 or 4 players',accent:gold,onTap:()=>_pickFee(GameMode.classic)),const SizedBox(height:12),_modeCard(icon:Icons.bolt,title:'Quick Mode',subtitle:'First token home wins • Capture to unlock home',accent:pink,onTap:()=>_pickFee(GameMode.quick)),const SizedBox(height:22),_label('PLAY TOGETHER'),_modeCard(icon:Icons.lock_outline,title:'Private Room',subtitle:'Create a 6-digit room code or join a friend',accent:const Color(0xFF45B7FF),onTap:widget.onPrivate),const SizedBox(height:12),Row(children:[Expanded(child:_smallCard(Icons.people,'Pass & Play','Local table',()=>widget.onOffline(mode,count,false))),const SizedBox(width:10),Expanded(child:_smallCard(Icons.smart_toy_outlined,'vs Computer','Offline bots',()=>widget.onOffline(mode,count,true)))]),const SizedBox(height:20),Container(padding:const EdgeInsets.all(17),decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xFF382A20),Color(0xFF24211D)]),borderRadius:BorderRadius.circular(18),border:Border.all(color:gold.withOpacity(.2))),child:Row(children:[const Icon(Icons.local_fire_department,color:gold,size:29),const SizedBox(width:12),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Text('Daily welcome bonus',style:TextStyle(fontWeight:FontWeight.bold)),Text('Your wallet is ready for the next match.',style:TextStyle(color:Colors.white.withOpacity(.57),fontSize:12))])),Text('LVL ${c.level}',style:const TextStyle(color:gold,fontWeight:FontWeight.w900))]))]));
   Widget _featureAction(IconData icon,String title,VoidCallback onTap)=>ActionChip(avatar:Icon(icon,color:pink,size:17),label:Text(title,style:const TextStyle(fontWeight:FontWeight.w900,fontSize:9)),backgroundColor:panel,side:BorderSide(color:pink.withOpacity(.18)),onPressed:onTap);
   Widget _toggle(int value)=>Expanded(child:InkWell(onTap:()=>setState(()=>count=value),borderRadius:BorderRadius.circular(12),child:Container(padding:const EdgeInsets.symmetric(vertical:12),decoration:BoxDecoration(color:count==value?const Color(0xFF3A2631):panel,borderRadius:BorderRadius.circular(12),border:Border.all(color:count==value?pink:Colors.white10)),child:Center(child:Text('$value Players',style:TextStyle(fontWeight:FontWeight.bold,color:count==value?pink:Colors.white70))))));
   Widget _label(String s)=>Padding(padding:const EdgeInsets.only(bottom:10),child:Text(s,style:const TextStyle(color:pink,fontWeight:FontWeight.w900,fontSize:11,letterSpacing:1.4)));
@@ -40,7 +40,47 @@ class _LobbyHomeState extends State<LobbyHome> { int count=2;GameMode mode=GameM
 
 class WalletHeader extends StatelessWidget { final LudoController c;const WalletHeader(this.c);@override Widget build(BuildContext context)=>Padding(padding:const EdgeInsets.symmetric(horizontal:16,vertical:9),child:Row(children:[CircleAvatar(radius:22,backgroundColor:panel,child:Text(c.avatar,style:const TextStyle(fontSize:23))),const SizedBox(width:9),Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(c.displayName,style:const TextStyle(fontSize:13,fontWeight:FontWeight.bold)),Container(padding:const EdgeInsets.symmetric(horizontal:7,vertical:2),decoration:BoxDecoration(color:gold.withOpacity(.16),borderRadius:BorderRadius.circular(9)),child:Text('LEVEL ${c.level}',style:const TextStyle(color:gold,fontWeight:FontWeight.w900,fontSize:9)))]),const Spacer(),_balance(Icons.monetization_on,c.coins.toString(),gold),const SizedBox(width:8),_balance(Icons.diamond,c.diamonds.toString(),const Color(0xFF45B7FF))]));Widget _balance(IconData icon,String amount,Color color)=>Container(padding:const EdgeInsets.symmetric(horizontal:9,vertical:8),decoration:BoxDecoration(color:panel,borderRadius:BorderRadius.circular(20)),child:Row(children:[Icon(icon,size:15,color:color),const SizedBox(width:4),Text(amount,style:const TextStyle(fontSize:11,fontWeight:FontWeight.w800))]));}
 
-class EntryFeePicker extends StatelessWidget { final int playerCount;const EntryFeePicker({super.key,required this.playerCount});@override Widget build(BuildContext context)=>SafeArea(child:Padding(padding:const EdgeInsets.all(20),child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.stretch,children:[const Text('Choose entry fee',style:TextStyle(fontSize:21,fontWeight:FontWeight.w900)),const SizedBox(height:5),const Text('Prize pool is shared between the seats.',style:TextStyle(color:Colors.white54)),const SizedBox(height:15),for(final fee in [500,2000,10000,50000])Consumer<LudoController>(builder:(context,c,_)=>Padding(padding:const EdgeInsets.only(bottom:9),child:InkWell(onTap:fee<=c.coins?()=>Navigator.pop(context,fee):null,borderRadius:BorderRadius.circular(13),child:Container(padding:const EdgeInsets.all(14),decoration:BoxDecoration(color:black,borderRadius:BorderRadius.circular(13),border:Border.all(color:fee>c.coins?Colors.white10:gold.withOpacity(.3))),child:Row(children:[const Icon(Icons.monetization_on,color:gold),const SizedBox(width:10),Expanded(child:Text('$fee coins',style:const TextStyle(fontWeight:FontWeight.bold))),Text('Prize ${fee*playerCount}',style:const TextStyle(color:gold,fontWeight:FontWeight.w900)),if(fee>c.coins)const Padding(padding:EdgeInsets.only(left:8),child:Icon(Icons.lock,color:Colors.white38,size:16))])))))]))));}
+class EntryFeePicker extends StatelessWidget {
+  final int playerCount;
+  const EntryFeePicker({super.key,required this.playerCount});
+  @override
+  Widget build(BuildContext context)=>SafeArea(
+    child:Padding(
+      padding:const EdgeInsets.all(20),
+      child:Column(
+        mainAxisSize:MainAxisSize.min,
+        crossAxisAlignment:CrossAxisAlignment.stretch,
+        children:[
+          const Text('Choose entry fee',style:TextStyle(fontSize:21,fontWeight:FontWeight.w900)),
+          const SizedBox(height:5),
+          const Text('Prize pool is shared between the seats.',style:TextStyle(color:Colors.white54)),
+          const SizedBox(height:15),
+          for(final fee in [500,2000,10000,50000])
+            Consumer<LudoController>(
+              builder:(context,c,_)=>Padding(
+                padding:const EdgeInsets.only(bottom:9),
+                child:InkWell(
+                  onTap:fee<=c.coins?()=>Navigator.pop(context,fee):null,
+                  borderRadius:BorderRadius.circular(13),
+                  child:Container(
+                    padding:const EdgeInsets.all(14),
+                    decoration:BoxDecoration(color:black,borderRadius:BorderRadius.circular(13),border:Border.all(color:fee>c.coins?Colors.white10:gold.withOpacity(.3))),
+                    child:Row(children:[
+                      const Icon(Icons.monetization_on,color:gold),
+                      const SizedBox(width:10),
+                      Expanded(child:Text('$fee coins',style:const TextStyle(fontWeight:FontWeight.bold))),
+                      Text('Prize ${fee*playerCount}',style:const TextStyle(color:gold,fontWeight:FontWeight.w900)),
+                      if(fee>c.coins)const Padding(padding:EdgeInsets.only(left:8),child:Icon(Icons.lock,color:Colors.white38,size:16)),
+                    ]),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
+}
 
 class MatchmakingScreen extends StatefulWidget { final bool privateRoom;const MatchmakingScreen({super.key,this.privateRoom=false});@override State<MatchmakingScreen> createState()=>_MatchmakingScreenState(); }
 class _MatchmakingScreenState extends State<MatchmakingScreen> with SingleTickerProviderStateMixin { late AnimationController pulse;bool transitionScheduled=false;@override void initState(){super.initState();pulse=AnimationController(vsync:this,duration:const Duration(milliseconds:1800))..repeat();} @override void dispose(){pulse.dispose();super.dispose();}
@@ -56,12 +96,72 @@ class VoiceRoomsPage extends StatelessWidget { const VoiceRoomsPage({super.key})
 class VoiceRoomScreen extends StatefulWidget{const VoiceRoomScreen({super.key});@override State<VoiceRoomScreen> createState()=>_VoiceRoomScreenState();}
 class _VoiceRoomScreenState extends State<VoiceRoomScreen>{@override Widget build(BuildContext context)=>Consumer<LudoController>(builder:(context,c,_)=>Scaffold(appBar:AppBar(title:const Text('MATCH VOICE'),leading:IconButton(onPressed:()=>Navigator.pop(context),icon:const Icon(Icons.arrow_back))),body:Center(child:Padding(padding:const EdgeInsets.all(24),child:Column(mainAxisSize:MainAxisSize.min,children:[const Icon(Icons.graphic_eq,color:pink,size:52),const SizedBox(height:12),const Text('Table voice room',style:TextStyle(fontSize:20,fontWeight:FontWeight.bold)),const SizedBox(height:8),Text(c.voiceJoined?'Connected • ${c.voicePeers.length+1} at the table':c.voiceError??'Connecting to voice room…',style:const TextStyle(color:Colors.white54),textAlign:TextAlign.center),const SizedBox(height:22),Wrap(spacing:10,runSpacing:10,alignment:WrapAlignment.center,children:[CircleAvatar(backgroundColor:pink.withOpacity(.18),radius:30,child:Text(c.avatar,style:const TextStyle(fontSize:25))),for(final peer in c.voicePeers)CircleAvatar(backgroundColor:panel,radius:30,child:Text('${peer['name']??'Player'}'.substring(0,1)))]),const SizedBox(height:25),ElevatedButton.icon(onPressed:c.voiceJoined?()=>c.setMicEnabled(!c.micEnabled):c.joinMatchVoice,icon:Icon(c.micEnabled?Icons.mic:Icons.mic_off),label:Text(c.voiceJoined?(c.micEnabled?'MIC STATUS: ACTIVE':'MIC STATUS: MUTED'):'JOIN VOICE')),const SizedBox(height:10),if(c.voiceJoined)ElevatedButton.icon(onPressed:()=>c.setSpeakerMuted(!c.speakerMuted),icon:Icon(c.speakerMuted?Icons.volume_off:Icons.volume_up),label:Text(c.speakerMuted?'SPEAKERS MUTED':'SPEAKERS ON')),const SizedBox(height:10),const Text('Peer audio streams directly between connected players.',style:TextStyle(color:Colors.white38,fontSize:11)),const SizedBox(height:18),OutlinedButton(onPressed:()=>Navigator.pop(context),child:const Text('BACK TO MATCH'))])))));}
 
-class ProfilePage extends StatelessWidget { const ProfilePage({super.key});@override Widget build(BuildContext context)=>Consumer<LudoController>(builder:(context,c,_)=>ListView(padding:const EdgeInsets.all(20),children:[const Text('Profile & Store',style:TextStyle(fontSize:25,fontWeight:FontWeight.w900)),const SizedBox(height:18),Container(padding:const EdgeInsets.all(18),decoration:BoxDecoration(color:panel,borderRadius:BorderRadius.circular(18)),child:Row(children:[CircleAvatar(radius:30,backgroundColor:black,child:Text(c.avatar,style:const TextStyle(fontSize:30))),const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(c.displayName,style:const TextStyle(fontSize:18,fontWeight:FontWeight.bold)),Text('Level ${c.level} • ${c.xp} XP',style:const TextStyle(color:gold))])),IconButton(onPressed:()=>showDialog(context:context,builder:(_)=>_EditProfile(c)),icon:const Icon(Icons.edit,color:pink))])),const SizedBox(height:14),Row(children:[_stat('GAMES',c.gamesPlayed.toString()),const SizedBox(width:10),_stat('WINS',c.wins.toString()),const SizedBox(width:10),_stat('CAPTURES',c.totalCaptures.toString())]),Container(decoration:BoxDecoration(color:panel,borderRadius:BorderRadius.circular(15)),child:Column(children:[ListTile(leading:const Icon(Icons.casino,color:pink),title:const Text('Lucky Spin'),subtitle:const Text('Daily coins and diamonds',style:TextStyle(color:Colors.white54,fontSize:11)),trailing:const Icon(Icons.chevron_right),onTap:()=>showDialog(context:context,builder:(_)=>const DailySpinDialog())),const Divider(height:1,color:Colors.white10),ListTile(leading:const Icon(Icons.calendar_month,color:gold),title:const Text('7-Day Check-In'),subtitle:Text(c.checkinStreak==0?'Claim your daily streak reward':'Current streak: ${c.checkinStreak} days',style:const TextStyle(color:Colors.white54,fontSize:11)),trailing:const Icon(Icons.chevron_right),onTap:()=>showDialog(context:context,builder:(_)=>const DailyCheckinDialog())),const Divider(height:1,color:Colors.white10),ListTile(leading:const Icon(Icons.leaderboard,color:Color(0xFF45B7FF)),title:const Text('Leaderboard'),subtitle:const Text('Top players and top gifters',style:TextStyle(color:Colors.white54,fontSize:11)),trailing:const Icon(Icons.chevron_right),onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>const LeaderboardScreen())))])),const SizedBox(height:22),const Text('COIN EXCHANGE',style:TextStyle(color:pink,fontWeight:FontWeight.w900,letterSpacing:1.4)),const SizedBox(height:10),for(final offer in [(5,1000),(20,5000),(50,15000)])Padding(padding:const EdgeInsets.only(bottom:9),child:Material(color:panel,borderRadius:BorderRadius.circular(14),child:ListTile(leading:const Icon(Icons.monetization_on,color:gold),title:Text('${offer.$2} coins'),subtitle:Text('Exchange ${offer.$1} diamonds'),trailing:ElevatedButton(onPressed:c.diamonds>=offer.$1?()=>_exchange(context,c,offer.$1,offer.$2):null,child:const Text('EXCHANGE'))))),const SizedBox(height:8),const Text('Store exchanges use your in-game diamonds. Purchases are not processed by this offline app.',style:TextStyle(color:Colors.white38,fontSize:11))]));}
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({super.key});
+  @override
+  Widget build(BuildContext context)=>Consumer<LudoController>(
+    builder:(context,c,_)=>ListView(
+      padding:const EdgeInsets.all(20),
+      children:[
+        const Text('Profile & Store',style:TextStyle(fontSize:25,fontWeight:FontWeight.w900)),
+        const SizedBox(height:18),
+        Container(
+          padding:const EdgeInsets.all(18),
+          decoration:BoxDecoration(color:panel,borderRadius:BorderRadius.circular(18)),
+          child:Row(children:[
+            CircleAvatar(radius:30,backgroundColor:black,child:Text(c.avatar,style:const TextStyle(fontSize:30))),
+            const SizedBox(width:14),
+            Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+              Text(c.displayName,style:const TextStyle(fontSize:18,fontWeight:FontWeight.bold)),
+              Text('Level ${c.level} • ${c.xp} XP',style:const TextStyle(color:gold)),
+            ])),
+            IconButton(onPressed:()=>showDialog(context:context,builder:(_)=>_EditProfile(c)),icon:const Icon(Icons.edit,color:pink)),
+          ]),
+        ),
+        const SizedBox(height:14),
+        Row(children:[
+          _stat('GAMES',c.gamesPlayed.toString()),const SizedBox(width:10),
+          _stat('WINS',c.wins.toString()),const SizedBox(width:10),
+          _stat('CAPTURES',c.totalCaptures.toString()),
+        ]),
+        const SizedBox(height:16),
+        Container(
+          decoration:BoxDecoration(color:panel,borderRadius:BorderRadius.circular(15)),
+          child:Column(children:[
+            ListTile(leading:const Icon(Icons.casino,color:pink),title:const Text('Lucky Spin'),subtitle:const Text('Daily coins and diamonds',style:TextStyle(color:Colors.white54,fontSize:11)),trailing:const Icon(Icons.chevron_right),onTap:()=>showDialog(context:context,builder:(_)=>const DailySpinDialog())),
+            const Divider(height:1,color:Colors.white10),
+            ListTile(leading:const Icon(Icons.calendar_month,color:gold),title:const Text('7-Day Check-In'),subtitle:Text(c.checkinStreak==0?'Claim your daily streak reward':'Current streak: ${c.checkinStreak} days',style:const TextStyle(color:Colors.white54,fontSize:11)),trailing:const Icon(Icons.chevron_right),onTap:()=>showDialog(context:context,builder:(_)=>const DailyCheckinDialog())),
+            const Divider(height:1,color:Colors.white10),
+            ListTile(leading:const Icon(Icons.leaderboard,color:Color(0xFF45B7FF)),title:const Text('Leaderboard'),subtitle:const Text('Top players and top gifters',style:TextStyle(color:Colors.white54,fontSize:11)),trailing:const Icon(Icons.chevron_right),onTap:()=>Navigator.push(context,MaterialPageRoute(builder:(_)=>const LeaderboardScreen()))),
+          ]),
+        ),
+        const SizedBox(height:22),
+        const Text('COIN EXCHANGE',style:TextStyle(color:pink,fontWeight:FontWeight.w900,letterSpacing:1.4)),
+        const SizedBox(height:10),
+        for(final offer in [(5,1000),(20,5000),(50,15000)])
+          Padding(
+            padding:const EdgeInsets.only(bottom:9),
+            child:Material(
+              color:panel,
+              borderRadius:BorderRadius.circular(14),
+              child:ListTile(
+                leading:const Icon(Icons.monetization_on,color:gold),
+                title:Text('${offer.$2} coins'),
+                subtitle:Text('Exchange ${offer.$1} diamonds'),
+                trailing:ElevatedButton(onPressed:c.diamonds>=offer.$1?()=>_exchange(context,c,offer.$1,offer.$2):null,child:const Text('EXCHANGE')),
+              ),
+            ),
+          ),
+        const SizedBox(height:8),
+        const Text('Store exchanges use your in-game diamonds. Purchases are not processed by this offline app.',style:TextStyle(color:Colors.white38,fontSize:11)),
+      ],
+    ),
+  );
   Widget _stat(String label,String value)=>Expanded(child:Container(padding:const EdgeInsets.symmetric(vertical:15),decoration:BoxDecoration(color:panel,borderRadius:BorderRadius.circular(14)),child:Column(children:[Text(value,style:const TextStyle(fontWeight:FontWeight.w900,fontSize:20,color:gold)),Text(label,style:const TextStyle(fontSize:9,color:Colors.white54,letterSpacing:1))])));
   void _exchange(BuildContext context,LudoController c,int diamonds,int coins){if(c.diamonds<diamonds)return;c.diamonds-=diamonds;c.grantCoins(coins);c.prefs.setInt('diamonds',c.diamonds);ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('$coins coins added to your wallet')));}
 }
 class _EditProfile extends StatefulWidget{final LudoController c;const _EditProfile(this.c);@override State<_EditProfile> createState()=>_EditProfileState();}
-class _EditProfileState extends State<_EditProfile>{late final TextEditingController name;late String emoji;@override void initState(){super.initState();name=TextEditingController(text:widget.c.displayName);emoji=widget.c.avatar;}@override void dispose(){name.dispose();super.dispose();}@override Widget build(BuildContext context)=>AlertDialog(backgroundColor:panel,title:const Text('Edit profile'),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:name,maxLength:24,decoration:const InputDecoration(labelText:'Player name',counterText:'')),Wrap(spacing:8,children:['🙂','🐯','🦊','🐼','🐸','🦄','🐨','🐙'].map((x)=>ChoiceChip(label:Text(x,style:const TextStyle(fontSize:20)),selected:emoji==x,onSelected:(_)=>setState(()=>emoji=x)).toList())]),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('Cancel')),ElevatedButton(onPressed:()async{await widget.c.updateProfile(name:name.text,newAvatar:emoji);if(mounted)Navigator.pop(context);},child:const Text('Save'))]);}
+class _EditProfileState extends State<_EditProfile>{late final TextEditingController name;late String emoji;@override void initState(){super.initState();name=TextEditingController(text:widget.c.displayName);emoji=widget.c.avatar;}@override void dispose(){name.dispose();super.dispose();}@override Widget build(BuildContext context)=>AlertDialog(backgroundColor:panel,title:const Text('Edit profile'),content:Column(mainAxisSize:MainAxisSize.min,children:[TextField(controller:name,maxLength:24,decoration:const InputDecoration(labelText:'Player name',counterText:'')),Wrap(spacing:8,children:['🙂','🐯','🦊','🐼','🐸','🦄','🐨','🐙'].map((x)=>ChoiceChip(label:Text(x,style:const TextStyle(fontSize:20)),selected:emoji==x,onSelected:(_)=>setState(()=>emoji=x)).toList()))]),actions:[TextButton(onPressed:()=>Navigator.pop(context),child:const Text('Cancel')),ElevatedButton(onPressed:()async{await widget.c.updateProfile(name:name.text,newAvatar:emoji);if(mounted)Navigator.pop(context);},child:const Text('Save'))]);}
 
 class MatchScreen extends StatefulWidget{const MatchScreen({super.key});@override State<MatchScreen> createState()=>_MatchScreenState();}
 class _MatchScreenState extends State<MatchScreen> with TickerProviderStateMixin{bool shown=false;int lastGiftSerial=0;final Map<String,GlobalKey> avatarKeys={};final Map<AnimationController,OverlayEntry> giftFlights={};@override void initState(){super.initState();WidgetsBinding.instance.addPostFrameCallback((_)=>context.read<LudoController>().joinMatchVoice());}GlobalKey _keyFor(LudoPlayer player)=>avatarKeys.putIfAbsent(player.userId,()=>GlobalKey());@override void dispose(){for(final flight in giftFlights.entries){if(flight.value.mounted)flight.value.remove();flight.key.dispose();}giftFlights.clear();super.dispose();}

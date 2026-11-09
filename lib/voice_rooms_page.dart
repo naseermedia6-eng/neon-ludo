@@ -51,10 +51,10 @@ class DedicatedVoiceRoomScreen extends StatefulWidget{const DedicatedVoiceRoomSc
 class _DedicatedVoiceRoomScreenState extends State<DedicatedVoiceRoomScreen> with TickerProviderStateMixin{
   final chatController=TextEditingController();final chatScroll=ScrollController();final List<AnimationController> effects=[];int seenGift=0;late final AnimationController entrance=AnimationController(vsync:this,duration:const Duration(milliseconds:500))..forward();
   @override void dispose(){chatController.dispose();chatScroll.dispose();entrance.dispose();for(final effect in effects){effect.dispose();}super.dispose();}
-  @override Widget build(BuildContext context)=>Consumer<LudoController>(builder:(context,c,_) {final room=c.activeVoiceRoom;if(room==null)return const Scaffold(backgroundColor:_roomBlack,body:Center(child:Text('This room is no longer active')));if(c.roomGiftSerial!=seenGift){seenGift=c.roomGiftSerial;final gift=c.lastRoomGift;if(gift!=null&&gift['voiceRoomId']==c.activeVoiceRoomId)WidgetsBinding.instance.addPostFrameCallback((_){if(mounted)_playGift(gift);});}return Scaffold(backgroundColor:_roomBlack,body:SafeArea(child:Stack(children:[Column(children:[_roomHeader(context,c,room),Expanded(child:SingleChildScrollView(child:FadeTransition(opacity:entrance,child:Column(children:[_hostSeat(context,c,room),const SizedBox(height:12),_guestSeats(context,c,room),const SizedBox(height:12),_audience(context,c,room)])))),_chatLog(c),_bottomBar(context,c)]))]));});
+  @override Widget build(BuildContext context)=>Consumer<LudoController>(builder:(context,c,_) {final room=c.activeVoiceRoom;if(room==null)return const Scaffold(backgroundColor:_roomBlack,body:Center(child:Text('This room is no longer active')));if(c.roomGiftSerial!=seenGift){seenGift=c.roomGiftSerial;final gift=c.lastRoomGift;if(gift!=null&&gift['voiceRoomId']==c.activeVoiceRoomId)WidgetsBinding.instance.addPostFrameCallback((_){if(mounted)_playGift(gift);});}return Scaffold(backgroundColor:_roomBlack,body:SafeArea(child:Stack(children:[Column(children:[_roomHeader(context,c,room),Expanded(child:SingleChildScrollView(child:FadeTransition(opacity:entrance,child:Column(children:[_hostSeat(context,c,room),const SizedBox(height:12),_guestSeats(context,c,room),const SizedBox(height:12),_audience(context,c,room)])))),_chatLog(c),_bottomBar(context,c)])])));});
   Widget _roomHeader(BuildContext context,LudoController c,Map<String,dynamic> room)=>Padding(padding:const EdgeInsets.fromLTRB(10,7,14,13),child:Row(children:[IconButton(onPressed:()=>_leave(context,c),icon:const Icon(Icons.arrow_back)),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('${room['title']}',maxLines:1,overflow:TextOverflow.ellipsis,style:const TextStyle(fontWeight:FontWeight.w900,fontSize:17)),Text('${room['category']}  •  ${room['listenerCount']} listeners  •  ✦ ${room['charm']} charm',style:const TextStyle(fontSize:10,color:Colors.white54))])),IconButton(tooltip:'Copy room ID',onPressed:(){Clipboard.setData(ClipboardData(text:c.activeVoiceRoomId??''));ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Room ID copied')));},icon:const Icon(Icons.ios_share,color:_roomGold))]));
   Widget _hostSeat(BuildContext context,LudoController c,Map<String,dynamic> room){final seats=room['seats'] as List? ?? [];final host=seats.isNotEmpty&&seats[0] is Map?Map<String,dynamic>.from(seats[0] as Map):null;return Column(children:[Padding(padding:const EdgeInsets.only(top:5,bottom:7),child:Text('HOST STAGE',style:TextStyle(color:_roomGold.withOpacity(.9),fontSize:10,fontWeight:FontWeight.w900,letterSpacing:2))),if(host!=null)_speakerTile(context,c,host,0,large:true)]);}
-  Widget _guestSeats(BuildContext context,LudoController c,Map<String,dynamic> room){final seats=room['seats'] as List? ?? [];final locked=room['lockedSeats'] as List? ?? [];return Padding(padding:const EdgeInsets.symmetric(horizontal:10),child(Column(children:[const Text('GUEST MICROPHONES',style:TextStyle(color:Colors.white38,fontSize:9,fontWeight:FontWeight.w900,letterSpacing:1.6)),const SizedBox(height:8),for(var row=0;row<2;row++)Padding(padding:const EdgeInsets.only(bottom:10),child:Row(children:[for(var column=0;column<4;column++)Expanded(child:Padding(padding:const EdgeInsets.symmetric(horizontal:4),child:_seat(context,c,room,seats,locked,1+row*4+column)))]))]));}
+  Widget _guestSeats(BuildContext context,LudoController c,Map<String,dynamic> room){final seats=room['seats'] as List? ?? [];final locked=room['lockedSeats'] as List? ?? [];return Padding(padding:const EdgeInsets.symmetric(horizontal:10),child(Column(children:[const Text('GUEST MICROPHONES',style:TextStyle(color:Colors.white38,fontSize:9,fontWeight:FontWeight.w900,letterSpacing:1.6)),const SizedBox(height:8),for(var row=0;row<2;row++)Padding(padding:const EdgeInsets.only(bottom:10),child:Row(children:[for(var column=0;column<4;column++)Expanded(child:Padding(padding:const EdgeInsets.symmetric(horizontal:4),child:_seat(context,c,room,seats,locked,1+row*4+column)))]))])));}
   Widget _seat(BuildContext context,LudoController c,Map<String,dynamic> room,List seats,List locked,int index){final speaker=index<seats.length&&seats[index] is Map?Map<String,dynamic>.from(seats[index] as Map):null;final isLocked=index<locked.length&&locked[index]==true;if(speaker!=null)return _speakerTile(context,c,speaker,index);final isHost=room['hostId']==c.userId;return InkWell(onTap:()=>isHost?_hostLockMenu(context,c,index,isLocked):isLocked?null:_takeSeat(context,c,index),borderRadius:BorderRadius.circular(14),child:Container(height:83,decoration:BoxDecoration(color:_roomPanel.withOpacity(.72),borderRadius:BorderRadius.circular(14),border:Border.all(color:isLocked?Colors.white12:_roomPink.withOpacity(.25),style:BorderStyle.solid)),child:Stack(children:[Center(child:Column(mainAxisSize:MainAxisSize.min,children:[Icon(isLocked?Icons.lock_outline:Icons.add_circle_outline,color:isLocked?Colors.white24:_roomPink,size:24),const SizedBox(height:3),Text(isLocked?'LOCKED':'TAKE SEAT',style:TextStyle(color:isLocked?Colors.white24:_roomPink,fontWeight:FontWeight.w900,fontSize:8))])),Positioned(left:6,top:5,child:_seatBadge(index))])));}
   Widget _speakerTile(BuildContext context,LudoController c,Map<String,dynamic> speaker,int index,{bool large=false}){
     final id='${speaker['userId']}';final mine=id==c.userId;final hot=speaker['micEnabled']==true;final host=speaker['userId']==c.activeVoiceRoom?['hostId'];final canKick=c.activeVoiceRoom?['hostId']==c.userId&&!mine;final size=large?86.0:52.0;
@@ -63,7 +63,31 @@ class _DedicatedVoiceRoomScreenState extends State<DedicatedVoiceRoomScreen> wit
   Widget _seatBadge(int index)=>Container(width:19,height:19,decoration:BoxDecoration(color:_roomBlack,borderRadius:BorderRadius.circular(7),border:Border.all(color:Colors.white24)),child:Center(child:Text(index==0?'H':'$index',style:const TextStyle(color:_roomGold,fontSize:8,fontWeight:FontWeight.w900))));
   Widget _audience(BuildContext context,LudoController c,Map<String,dynamic> room){final members=room['members'] as List? ?? [];final listeners=members.whereType<Map>().where((member)=>member['speaking']!=true).toList();return Padding(padding:const EdgeInsets.symmetric(horizontal:18,vertical:5),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Row(children:[const Icon(Icons.headphones,color:Colors.white38,size:16),const SizedBox(width:6),Text('AUDIENCE  ${listeners.length}',style:const TextStyle(color:Colors.white38,fontSize:10,fontWeight:FontWeight.w900,letterSpacing:1))]),const SizedBox(height:8),Wrap(spacing:8,runSpacing:8,children:listeners.take(18).map((member)=>Container(padding:const EdgeInsets.symmetric(horizontal:9,vertical:6),decoration:BoxDecoration(color:_roomPanel,borderRadius:BorderRadius.circular(20)),child:Text('${member['avatar']??'🙂'} ${member['name']??'Player'}',style:const TextStyle(fontSize:10,color:Colors.white70)))).toList())]));}
   Widget _chatLog(LudoController c)=>Container(height:140,margin:const EdgeInsets.fromLTRB(12,5,12,7),padding:const EdgeInsets.symmetric(horizontal:11,vertical:7),decoration:BoxDecoration(color:_roomPanel.withOpacity(.65),borderRadius:BorderRadius.circular(13)),child:ListView.builder(controller:chatScroll,reverse:true,itemCount:c.roomChat.length,itemBuilder:(context,index){final message=c.roomChat[c.roomChat.length-1-index];final kind=message['kind'];return Padding(padding:const EdgeInsets.symmetric(vertical:2),child:Text(kind=='system'?'• ${message['text']}':kind=='gift'?'🎁 ${message['text']}':'${message['avatar']??'🙂'} ${message['name']??'Player'}: ${message['text']}',style:TextStyle(fontSize:10,color:kind=='gift'?_roomGold:kind=='system'?Colors.white38:Colors.white70)));}));
-  Widget _bottomBar(BuildContext context,LudoController c)=>Padding(padding:const EdgeInsets.fromLTRB(10,0,10,10),child:Column(children:[Row(children:[Expanded(child:OutlinedButton.icon(onPressed:()=>_leave(context,c),icon:const Icon(Icons.logout,size:16),label:const Text('LEAVE'),style:OutlinedButton.styleFrom(foregroundColor:Colors.white70))),const SizedBox(width:6),GestureDetector(onLongPress:_isRoomSpeaker(c)&&!_isRoomHost(c)?()=>c.releaseMicSeat():null,child:IconButton.filled(tooltip:_isRoomHost(c)?'Toggle host microphone':'Mic mute • long press to leave seat',onPressed:_isRoomSpeaker(c)?()=>c.setRoomMicEnabled(!c.roomMicEnabled):null,style:IconButton.styleFrom(backgroundColor:c.roomMicEnabled?_roomPink:_roomPanel),icon:Icon(c.roomMicEnabled?Icons.mic:Icons.mic_off))),IconButton.filled(onPressed:()=>_giftToHost(context,c),style:IconButton.styleFrom(backgroundColor:_roomPanel),icon:const Icon(Icons.card_giftcard,color:_roomGold)),]),const SizedBox(height:6),Row(children:[Expanded(child(TextField(controller:chatController,onSubmitted:_sendChat,decoration:InputDecoration(hintText:'Say something kind…',filled:true,fillColor:_roomPanel,border:OutlineInputBorder(borderRadius:BorderRadius.circular(22),borderSide:BorderSide.none),contentPadding:const EdgeInsets.symmetric(horizontal:16,vertical:9)))),const SizedBox(width:7),IconButton.filled(onPressed:()=>_sendChat(chatController.text),style:IconButton.styleFrom(backgroundColor:_roomPink),icon:const Icon(Icons.send,size:17))]) ]));
+  Widget _bottomBar(BuildContext context,LudoController c)=>Padding(
+    padding:const EdgeInsets.fromLTRB(10,0,10,10),
+    child:Column(children:[
+      Row(children:[
+        Expanded(child:OutlinedButton.icon(onPressed:()=>_leave(context,c),icon:const Icon(Icons.logout,size:16),label:const Text('LEAVE'),style:OutlinedButton.styleFrom(foregroundColor:Colors.white70))),
+        const SizedBox(width:6),
+        GestureDetector(
+          onLongPress:_isRoomSpeaker(c)&&!_isRoomHost(c)?()=>c.releaseMicSeat():null,
+          child:IconButton.filled(
+            tooltip:_isRoomHost(c)?'Toggle host microphone':'Mic mute • long press to leave seat',
+            onPressed:_isRoomSpeaker(c)?()=>c.setRoomMicEnabled(!c.roomMicEnabled):null,
+            style:IconButton.styleFrom(backgroundColor:c.roomMicEnabled?_roomPink:_roomPanel),
+            icon:Icon(c.roomMicEnabled?Icons.mic:Icons.mic_off),
+          ),
+        ),
+        IconButton.filled(onPressed:()=>_giftToHost(context,c),style:IconButton.styleFrom(backgroundColor:_roomPanel),icon:const Icon(Icons.card_giftcard,color:_roomGold)),
+      ]),
+      const SizedBox(height:6),
+      Row(children:[
+        Expanded(child:TextField(controller:chatController,onSubmitted:_sendChat,decoration:InputDecoration(hintText:'Say something kind…',filled:true,fillColor:_roomPanel,border:OutlineInputBorder(borderRadius:BorderRadius.circular(22),borderSide:BorderSide.none),contentPadding:const EdgeInsets.symmetric(horizontal:16,vertical:9)))),
+        const SizedBox(width:7),
+        IconButton.filled(onPressed:()=>_sendChat(chatController.text),style:IconButton.styleFrom(backgroundColor:_roomPink),icon:const Icon(Icons.send,size:17)),
+      ]),
+    ]),
+  );
   bool _isRoomHost(LudoController c)=>c.activeVoiceRoom?['hostId']==c.userId;
   bool _isRoomSpeaker(LudoController c)=>(c.activeVoiceRoom?['seats'] as List? ?? []).any((seat)=>seat is Map&&seat['userId']==c.userId);
   void _sendChat(String value)async{if(value.trim().isEmpty)return;chatController.clear();final result=await context.read<LudoController>().sendRoomChat(value);if(result['ok']!=true&&mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('${result['reason']}')));}
@@ -75,7 +99,43 @@ class _DedicatedVoiceRoomScreenState extends State<DedicatedVoiceRoomScreen> wit
   void _playGift(Map<String,dynamic> event){SystemSound.play(SystemSoundType.alert);final controller=AnimationController(vsync:this,duration:const Duration(milliseconds:4800));effects.add(controller);controller.forward().whenComplete((){effects.remove(controller);controller.dispose();if(mounted)setState((){});});showDialog(context:context,barrierColor:Colors.transparent,barrierDismissible:false,builder:(_)=>_GiftOverlayRoute(event:event,controller:controller));controller.addStatusListener((status){if(status==AnimationStatus.completed&&mounted)Navigator.of(context,rootNavigator:true).maybePop();});}
 }
 
-class _RoomGiftTray extends StatelessWidget{const _RoomGiftTray({required this.receiver,required this.onSend});final Map<String,dynamic> receiver;final Future<Map<String,dynamic>> Function(RoomGift) onSend;@override Widget build(BuildContext context)=>SafeArea(child:Padding(padding:const EdgeInsets.fromLTRB(18,18,18,25),child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[Text('LUXURY GIFT FOR ${receiver['name']}'.toString().toUpperCase(),style:const TextStyle(color:_roomPink,fontWeight:FontWeight.w900,letterSpacing:1)),const SizedBox(height:10),for(final gift in LudoController.roomGifts)Consumer<LudoController>(builder:(context,c,_)=>ListTile(leading:Text(gift.emoji,style:const TextStyle(fontSize:28)),title:Text(gift.name,style:const TextStyle(fontWeight:FontWeight.bold)),subtitle:Text('${gift.diamonds} diamonds',style:const TextStyle(color:_roomGold,fontSize:11)),trailing:ElevatedButton(onPressed:c.diamonds<gift.diamonds?null:()async{final result=await onSend(gift);if(!context.mounted)return;if(result['ok']==true)Navigator.pop(context);else ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('${result['reason']}')));},child:const Text('SEND')))]))));}
+class _RoomGiftTray extends StatelessWidget {
+  const _RoomGiftTray({required this.receiver,required this.onSend});
+  final Map<String,dynamic> receiver;
+  final Future<Map<String,dynamic>> Function(RoomGift) onSend;
+  @override
+  Widget build(BuildContext context)=>SafeArea(
+    child:Padding(
+      padding:const EdgeInsets.fromLTRB(18,18,18,25),
+      child:Column(
+        mainAxisSize:MainAxisSize.min,
+        crossAxisAlignment:CrossAxisAlignment.start,
+        children:[
+          Text('LUXURY GIFT FOR ${receiver['name']}'.toUpperCase(),style:const TextStyle(color:_roomPink,fontWeight:FontWeight.w900,letterSpacing:1)),
+          const SizedBox(height:10),
+          for(final gift in LudoController.roomGifts)
+            Consumer<LudoController>(
+              builder:(context,c,_){
+                return ListTile(
+                  leading:Text(gift.emoji,style:const TextStyle(fontSize:28)),
+                  title:Text(gift.name,style:const TextStyle(fontWeight:FontWeight.bold)),
+                  subtitle:Text('${gift.diamonds} diamonds',style:const TextStyle(color:_roomGold,fontSize:11)),
+                  trailing:ElevatedButton(
+                    onPressed:c.diamonds<gift.diamonds?null:()async{
+                      final result=await onSend(gift);
+                      if(!context.mounted)return;
+                      if(result['ok']==true){Navigator.pop(context);}else{ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('${result['reason']}')));}
+                    },
+                    child:const Text('SEND'),
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    ),
+  );
+}
 
 class _SpeakerPulse extends StatefulWidget{const _SpeakerPulse({required this.size,required this.hot,required this.avatar,required this.accent});final double size;final bool hot;final String avatar;final Color accent;@override State<_SpeakerPulse> createState()=>_SpeakerPulseState();}
 class _SpeakerPulseState extends State<_SpeakerPulse> with SingleTickerProviderStateMixin{late final AnimationController pulse=AnimationController(vsync:this,duration:const Duration(milliseconds:720));@override void initState(){super.initState();if(widget.hot)pulse.repeat(reverse:true);}@override void didUpdateWidget(covariant _SpeakerPulse oldWidget){super.didUpdateWidget(oldWidget);if(widget.hot&&!pulse.isAnimating)pulse.repeat(reverse:true);if(!widget.hot)pulse..stop()..value=0;}@override void dispose(){pulse.dispose();super.dispose();}@override Widget build(BuildContext context)=>AnimatedBuilder(animation:pulse,builder:(context,_)=>Container(width:widget.size,height:widget.size,decoration:BoxDecoration(shape:BoxShape.circle,color:widget.accent.withOpacity(.14),border:Border.all(color:widget.hot?_roomPink:widget.accent.withOpacity(.6),width:widget.hot?2.5:1.4),boxShadow:widget.hot?[BoxShadow(color:_roomPink.withOpacity(.3+.5*pulse.value),blurRadius:12+10*pulse.value,spreadRadius:1+2*pulse.value)]:[]),child:Center(child:Text(widget.avatar,style:TextStyle(fontSize:widget.size*.46)))));}
